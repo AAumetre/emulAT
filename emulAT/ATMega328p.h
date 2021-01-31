@@ -9,7 +9,7 @@ class ATMega328p {
 public:
 	ATMega328p();
 
-public:
+private:
 	static const size_t _flash_lines	= 32 * 1024 * 8 / 16; // lines
 	static const size_t _eeprom_lines	= 1 * 1024 * 8 / 8; // lines
 	static const size_t _ram_lines		= 2 * 1024 * 8 / 8; // lines
@@ -17,11 +17,20 @@ public:
 	static const size_t _register_size	= 32; // bytes
 
 public:
-	Flash<uint16_t> _flash;		// Blocks of 16 bits
-	Eeprom<uint8_t> _eeprom;	// Blocks of 8 bits
+	void reset(void);
+	void decode(void);
+	void fetch(void);
+
+public:
+	bool _isVerbose;
+public:
+	Flash<uint16_t> _flash;		// Blocks of 16 bits - contains the program
+	Eeprom<uint8_t> _eeprom;	// Blocks of 8 bits - contains additional data
 	Ram<uint8_t>	_ram;		// Blocks of 8 bits
 
-private:
+	Register _registers[_register_size];
+
+public: // Should be private
 	StatusRegister SREG;
 	/*
 	X = R27 R26
@@ -29,9 +38,17 @@ private:
 	Z = R31 R30
 	*/
 
-	// Stack in RAM, from high addresses to lower
-	Register SPH; // Stack Pointer High
-	Register SPL; // Stack Pointer Low
+	// Stack in RAM, from high addresses to lower, the SP points to the top (lowest address)
+	StackPointer SP;
+
+	// Program Counter points to the next instruction to be decoded, sotred in SRAM
+	// Let's say it's the 14 MSBs of the SRAM, for now
+	// So 8 bits MSB and 6 MSB of MSB-1 
+	ProgramCounter PC;
+
+	// Instruction Register temporarily store the decoded instruction
+	Instruction IR;
+	DecodedInstruction _instruction;
 
 
 	/*SRAM Data Memory

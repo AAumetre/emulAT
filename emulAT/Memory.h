@@ -1,4 +1,5 @@
 #pragma once
+#include <bitset>
 #include <string>
 #include <vector>
 
@@ -16,7 +17,11 @@ public:
 
 public:
 	S readLineAt(size_t address_);
+	S readLineAt(std::bitset<8*sizeof(S)> address_);
 	bool writeLineAt(size_t address_, S val_);
+	bool writeBitsAt(size_t address_, S val_, S mask_);
+public:
+	size_t END;
 
 private:
 	size_t _size;
