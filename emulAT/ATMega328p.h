@@ -4,6 +4,7 @@
 #include "Memory.h"
 #include "Memory.cpp" // Needed because the implementation of the template class is missing a linking
 #include "Register.h"
+#include "BitUtility.h"
 
 class ATMega328p {
 public:
@@ -20,6 +21,7 @@ public:
 	void reset(void);
 	void decode(void);
 	void fetch(void);
+	void execute(void);
 
 public:
 	bool _isVerbose;
@@ -31,7 +33,7 @@ public:
 	Register _registers[_register_size];
 
 public: // Should be private
-	StatusRegister SREG;
+	Register SREG;
 	/*
 	X = R27 R26
 	Y = R29 R28
@@ -65,5 +67,12 @@ public: // Should be private
 	Register GPIOR2; // General Purpose I/O Register 2
 	Register GPIOR1; // General Purpose I/O Register 1
 	Register GPIOR0; // General Purpose I/O Register 0
+
+private:
+	void handleUnknownInstruction();
+
+private:
+	void ADD(void);
+	void unknownInstruction(void);
 
 };

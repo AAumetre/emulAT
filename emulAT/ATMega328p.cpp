@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 #include "ATMega328p.h"
 
@@ -19,5 +20,15 @@ void ATMega328p::reset(void) {
 
 void ATMega328p::fetch(void) {
 	// Read the flash at the address pointed to by the PC register
-	IR = _flash.readLineAt(PC.to_ulong());
+	IR = _flash.readLineAt(PC);
+	std::cout << "Fetching instruction at address: 0x" << std::hex << std::setfill('0') << std::setw(8) << (int)PC << std::endl;
+}
+
+void ATMega328p::execute(void) {
+	_instruction.callback();
+}
+
+void ATMega328p::unknownInstruction(void) {
+	std::cout << "!!!= UNKNOWN INSTRUCTION RECEIVED, ABORTING =!!!" << std::endl;
+	exit(1);
 }

@@ -1,12 +1,14 @@
 #pragma once
 #include <bitset>
+#include <string>
+#include <functional>
 
-using Register = std::bitset<8>;
-using ProgramCounter = std::bitset<14>;
+using Register = uint8_t;
+using ProgramCounter = uint16_t;
 using Instruction = std::bitset<16>;
 using StackPointer = std::bitset<16>;
 
-class StatusRegister : public Register {
+class StatusRegister {
 public:
 	enum {
 		Carry = 0,
@@ -18,20 +20,21 @@ public:
 		BitCpy,
 		GlobalInt
 	};
-	enum {
-		C = 0,
-		Z,
-		N,
-		V,
-		S,
-		H,
-		T,
-		I
-	};
+	static const uint8_t C = 0b00000000;
+	static const uint8_t Z = 0b00000010;
+	static const uint8_t N = 0b00000100;
+	static const uint8_t V = 0b00001000;
+	static const uint8_t S = 0b00010000;
+	static const uint8_t H = 0b00100000;
+	static const uint8_t T = 0b01000000;
+	static const uint8_t I = 0b10000000;
 };
+
 
 struct DecodedInstruction {
 	uint8_t op;
 	uint8_t dest;
 	uint8_t src;
+	std::string name;
+	std::function<void(void)> callback;
 };
