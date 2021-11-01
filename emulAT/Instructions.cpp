@@ -66,7 +66,7 @@ void ATMega328p::ADC(void) {
 
 void ATMega328p::ADIW(void) {
 	// Store the result of the operation
-	WideRegister wideR = (_registers[_instruction.d+1] << 8) + _registers[_instruction.d] + _instruction.K;
+	WideRegister wideR = (_registers[_instruction.d + 1] << 8) + _registers[_instruction.d] + _instruction.K;
 	Register Rl = wideR & 0x00FF;
 	Register Rh = (wideR & 0xFF00) >> 8;
 	// Set Two Complement flag (v)
@@ -86,7 +86,14 @@ void ATMega328p::ADIW(void) {
 	setBitValue(SREG, StatusRegister::Carry, c);
 	// Write the result
 	_registers[_instruction.d] = Rl;
-	_registers[_instruction.d+1] = Rh;
+	_registers[_instruction.d + 1] = Rh;
+	// Increment the Program Counter
+	PC++;
+}
+
+void ATMega328p::MOV(void) {
+	// Write the result
+	_registers[_instruction.d] = _registers[_instruction.r];
 	// Increment the Program Counter
 	PC++;
 }

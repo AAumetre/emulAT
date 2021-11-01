@@ -38,5 +38,6 @@ struct DecodedInstruction {
 	uint8_t r;
 	uint8_t K;
 	std::string name;
+	std::string description;
 	std::function<void(void)> callback;
 };
