@@ -1,13 +1,39 @@
 #pragma once
 #include "Register.h"
 
-void setBit(Register& reg, const uint8_t mask);
-void setBitAt(Register& reg, uint8_t pos);
+template <typename T>
+void setBit(T& reg, const uint8_t mask) {
+	reg |= (reg & mask);
+}
+template <typename T>
+void setBitAt(T& reg, uint8_t pos) {
+	reg |= (1 << pos);
+}
 
-void clearBit(Register& reg, const uint8_t mask);
-void clearBitAt(Register& reg, uint8_t pos);
+template <typename T>
+void clearBit(T& reg, const uint8_t mask) {
+	reg &= ~mask;
+}
+template <typename T>
+void clearBitAt(T& reg, uint8_t pos) {
+	reg &= ~(1 << pos);
+}
 
-bool checkBit(Register& reg, const uint8_t mask);
-bool checkBitAt(Register& reg, uint8_t pos);
+template <typename T>
+bool checkBit(T& reg, const uint8_t mask) {
+	return (reg & mask) > 0;
+}
+template <typename T>
+bool checkBitAt(T& reg, uint8_t pos) {
+	return (reg >> pos) & 1;
+}
 
-void setBitValue(Register& reg, uint8_t pos, bool val);
+template <typename T>
+void setBitValue(T& reg, uint8_t pos, bool val) {
+	if (val) {
+		setBitAt(reg, pos);
+	}
+	else {
+		clearBitAt(reg, pos);
+	}
+}

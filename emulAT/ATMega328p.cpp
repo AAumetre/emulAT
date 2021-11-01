@@ -21,11 +21,16 @@ void ATMega328p::reset(void) {
 void ATMega328p::fetch(void) {
 	// Read the flash at the address pointed to by the PC register
 	IR = _flash.readLineAt(PC);
-	std::cout << "Fetching instruction at address: 0x" << std::hex << std::setfill('0') << std::setw(8) << (int)PC << std::endl;
+	std::cout << "Fetching instruction at address: 0x" << std::hex << std::setfill('0') << std::setw(8) << (int)PC  << ": " << IR << std::endl;
 }
 
 void ATMega328p::execute(void) {
-	_instruction.callback();
+	if (_instruction.callback ) {
+		_instruction.callback();
+	}
+	else {
+		std::cout << "!!!= UNKNOWN CALLBACK, IGNORING =!!!" << std::endl;
+	}
 }
 
 void ATMega328p::unknownInstruction(void) {

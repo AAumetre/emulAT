@@ -73,6 +73,8 @@ private:
 
 private:
 	void ADD(void);
+	void ADC(void);
+	void ADIW(void); // d {24,26,28,30}, 0<=K<=63
 	void unknownInstruction(void);
 
 };

@@ -12,8 +12,8 @@ template <typename S>
 Memory<S>::Memory(size_t size_, std::string name_) : Memory(size_){
 	_name = name_;
 
-	std::cout << _name << " initialized with " << _size <<
-		" lines, of " << sizeof(S) << " bytes each, totalling "
+	std::cout << _name << " initialized with \t\t" << _size <<
+		" lines, of \t" << sizeof(S) << " bytes each, totalling \t"
 		<< _size*sizeof(S) << " bytes." << std::endl;
 }
 

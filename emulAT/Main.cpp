@@ -14,35 +14,45 @@ void displayRegisters(ATMega328p& uC, size_t n = 8) {
 	}
 	// Display Status Register
 	std::cout << "I  T  H  S  V  N  Z  C" << std::endl;
-	for (int i = 0; i < 8; ++i) {
+	for (int i = 7; i >= 0; --i) {
 		std::cout << checkBitAt(uC.SREG, i) << "  ";
 	}
 	std::cout << std::endl;
 }
 
 int main(int argc, char** argv) {
-
+	// Instanciate the ATMega328p
 	ATMega328p uC;
 	uC._isVerbose = true;
+
 	// Write a dummy program
-	uC._registers[0] = 0x0F; // Manually write 0x0F in reg0
-	uC._registers[1] = 0xF0; // Manually write 0xF0 in reg1
-	uC._flash.writeLineAt(0, 0b0000110000000001); // ADD reg0 = reg0 + reg1
-	uC._flash.writeLineAt(1, 0); // Nothing
+	uC._registers[0] = 0x0D; // Manually write 0x01 in reg0
+	uC._registers[1] = 0x01; // Manually write 0x01 in reg1
+	uC._registers[2] = 0xF1; // Manually write 0x10 in reg2
+	uC._registers[3] = 0xF1; // Manually write 0x10 in reg3
+	int i = 0;
+	uC._flash.writeLineAt(i++, 0b0000'1100'0000'0001); // ADD reg0 = reg0 + reg1
+	uC._flash.writeLineAt(i++, 0b0001'1100'0010'0000); // ADC reg2 = reg2 + reg0
+	uC._flash.writeLineAt(i++, 0b0001'1100'0010'0001); // ADC reg2 = reg2 + reg1
+	uC._flash.writeLineAt(i++, 0b0001'1100'0010'0011); // ADC reg2 = reg2 + reg3
+	uC._flash.writeLineAt(i++, 0b0001'1100'0010'0011); // ADC reg2 = reg2 + reg3
+	uC._flash.writeLineAt(i++, 0); // Nothing
+
 
 	std::cout << std::endl;
 	std::cout << "------------------------------------------------------------------------------" << std::endl;
 	std::cout << "    Launching the execution of a program, starting @ 0x0000 0000 0000 0000" << std::endl;
 	std::cout << "------------------------------------------------------------------------------" << std::endl;
-	int nClocks = 2;
+	int nClocks = 6;
 	for (int i = 0; i < nClocks; ++i) {
-		displayRegisters(uC);
+		displayRegisters(uC, 4);
 		uC.fetch();
 		uC.decode();
 		uC.execute();
 		std::cout << "-------------------------------------------" << std::endl;
 	}
 	
+
 
 
 	return 0;

@@ -4,6 +4,7 @@
 #include <functional>
 
 using Register = uint8_t;
+using WideRegister = uint16_t;
 using ProgramCounter = uint16_t;
 using Instruction = std::bitset<16>;
 using StackPointer = std::bitset<16>;
@@ -33,8 +34,9 @@ public:
 
 struct DecodedInstruction {
 	uint8_t op;
-	uint8_t dest;
-	uint8_t src;
+	uint8_t d;
+	uint8_t r;
+	uint8_t K;
 	std::string name;
 	std::function<void(void)> callback;
 };
