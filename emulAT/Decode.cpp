@@ -8,8 +8,14 @@ void ATMega328p::handleUnknownInstruction() {
 }
 
 void ATMega328p::decode(void) {
-
+	// Set default values for the members
 	_instruction.name = "unknown";
+	_instruction.description = "no description provided";
+	_instruction.d = 0;
+	_instruction.r = 0;
+	_instruction.K = 0;
+	_instruction.k = 0;
+	_instruction.callback = nullptr;
 	// Cut-down the instruction in 4 bits chunks
 	uint8_t splitInstruction[4];
 	for (int i = 0; i < 4; ++i) {
@@ -25,9 +31,17 @@ void ATMega328p::decode(void) {
 			_instruction.op = 0b000011;
 			_instruction.d = (((splitInstruction[1] & 0b1) << 4) | splitInstruction[2]);
 			_instruction.r = (((splitInstruction[1] & 0b10) << 3) | splitInstruction[3]);
-			_instruction.K = 0;
 			_instruction.callback = std::bind(&ATMega328p::ADD, this);
 			break;
+			break;
+		case 0b00:
+			if (splitInstruction[0] == 0 && splitInstruction[1] == 0 && splitInstruction[2] == 0 && splitInstruction[3] == 0) {
+				_instruction.name = "NOP";
+				_instruction.description = "No Operation";
+				_instruction.op = 0b0000'0000'0000'0000;
+				_instruction.callback = std::bind(&ATMega328p::NOP, this);
+				break;
+			}
 			break;
 		}
 		break;
@@ -39,7 +53,6 @@ void ATMega328p::decode(void) {
 			_instruction.op = 0b000111;
 			_instruction.d = (((splitInstruction[1] & 0b1) << 4) | splitInstruction[2]);
 			_instruction.r = (((splitInstruction[1] & 0b10) << 3) | splitInstruction[3]);
-			_instruction.K = 0;
 			_instruction.callback = std::bind(&ATMega328p::ADC, this);
 			break;
 			break;
@@ -53,7 +66,6 @@ void ATMega328p::decode(void) {
 			_instruction.op = 0b00101100;
 			_instruction.d = 0b10000*(splitInstruction[1]&0b0001) + splitInstruction[2];
 			_instruction.r = 0b10000 * (splitInstruction[1] & 0b0010) + splitInstruction[3];
-			_instruction.K = 0;
 			_instruction.callback = std::bind(&ATMega328p::MOV, this);
 			break;
 			break;
@@ -62,23 +74,36 @@ void ATMega328p::decode(void) {
 	case 0b1001:
 		switch ((splitInstruction[1] & 0b1100) >> 2) { // Next two bits
 		case 0b01:
-
 			switch (splitInstruction[1] & 0b0011) { // Next two bits
 			case 0b10:
 				_instruction.name = "ADIW";
 				_instruction.description = "Add Immediate to Word";
 				_instruction.op = 0b10010110;
-				_instruction.d = 24 + 2*(splitInstruction[2] & 0b0011);
-				_instruction.r = 0;
+				_instruction.d = 24 + 2 * (splitInstruction[2] & 0b0011);
 				_instruction.K = ((splitInstruction[2] & 0b1100) << 4) | splitInstruction[3];
 				_instruction.callback = std::bind(&ATMega328p::ADIW, this);
+				break;			
+			case 0b01:
+				if (splitInstruction[2] == 0b1001 && splitInstruction[3] == 0b1000) {
+					_instruction.name = "BREAK";
+					_instruction.description = "Break";
+					_instruction.op = 0b1001'0101'1001'1000;
+					_instruction.callback = std::bind(&ATMega328p::BREAK, this);
+					break;
+				}
 				break;
-				break;
-			}
-			break;
 		}
-
-		
+		break;
+		}
+		break;
+	case 0b1100:
+		_instruction.name = "RJMP";
+		_instruction.description = "Relative Jump";
+		_instruction.op = 0b1100;
+		_instruction.k = (splitInstruction[1] << (3 * 4)) + (splitInstruction[2] << (2 * 4)) + (splitInstruction[3] << (1 * 4));
+		_instruction.k /= 16;
+		_instruction.callback = std::bind(&ATMega328p::RJMP, this);
+		break;		
 	}
 
 	if (_instruction.name == "unknown") {

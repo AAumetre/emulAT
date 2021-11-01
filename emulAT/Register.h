@@ -34,9 +34,10 @@ public:
 
 struct DecodedInstruction {
 	uint8_t op;
-	uint8_t d;
-	uint8_t r;
-	uint8_t K;
+	uint8_t d; // Destination
+	uint8_t r; // Source
+	uint8_t K; // Const data
+	int16_t k; // Const address, can be negative
 	std::string name;
 	std::string description;
 	std::function<void(void)> callback;

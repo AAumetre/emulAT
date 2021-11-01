@@ -48,8 +48,9 @@ public: // Should be private
 	// So 8 bits MSB and 6 MSB of MSB-1 
 	ProgramCounter PC;
 
-	// Instruction Register temporarily store the decoded instruction
+	// Instruction Register temporarily stores the decoded instruction
 	Instruction IR;
+	// Decoded instruction structure
 	DecodedInstruction _instruction;
 
 
@@ -70,12 +71,16 @@ public: // Should be private
 
 private:
 	void handleUnknownInstruction();
+	void stop();
 
 private:
 	void ADD(void);
 	void ADC(void);
 	void ADIW(void); // d {24,26,28,30}, 0<=K<=63
+	void BREAK(void);
 	void MOV(void);
+	void NOP(void);
+	void RJMP(void);
 	void unknownInstruction(void);
 
 };

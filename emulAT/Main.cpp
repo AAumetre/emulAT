@@ -18,6 +18,8 @@ void displayRegisters(ATMega328p& uC, size_t n = 8) {
 		std::cout << checkBitAt(uC.SREG, i) << "  ";
 	}
 	std::cout << std::endl;
+	// Display the program counter value
+	std::cout << "=== PC: 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)uC.PC  << " ===" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -31,16 +33,25 @@ int main(int argc, char** argv) {
 	uC._registers[2] = 0xF1; // Manually write 0x10 in reg2
 	uC._registers[3] = 0xF1; // Manually write 0x10 in reg3
 	uC._registers[26] = 0xFA; // Manually write 0d250 in reg26
+
 	int n = 0;
-	uC._flash.writeLineAt(n++, 0b0000'1100'0000'0001); // ADD reg0 = reg0 + reg1
-	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0000); // ADC reg2 = reg2 + reg0
-	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0001); // ADC reg2 = reg2 + reg1
-	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0011); // ADC reg2 = reg2 + reg3
-	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0011); // ADC reg2 = reg2 + reg3
-	uC._flash.writeLineAt(n++, 0b1001'0110'0001'1010); // ADIW reg1 = reg1 + 10
-	uC._flash.writeLineAt(n++, 0b0010'1100'0000'0010); // MOV reg0 = reg2
-	uC._flash.writeLineAt(n++, 0b0010'1100'0001'0000); // MOV reg1 = reg0
-	uC._flash.writeLineAt(n++, 0); // Nothing, will make the emulator stop
+	uC._flash.writeLineAt(n++, 0b0000'1100'0000'0001);	// 0: ADD reg0 = reg0 + reg1
+	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0000);	// 1: ADC reg2 = reg2 + reg0
+	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0001);	// 2: ADC reg2 = reg2 + reg1
+	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0011);	// 3: ADC reg2 = reg2 + reg3
+	uC._flash.writeLineAt(n++, 0b0001'1100'0010'0011);	// 4: ADC reg2 = reg2 + reg3
+	uC._flash.writeLineAt(n++, 0b1001'0110'0001'1010);	// 5: ADIW reg1 = reg1 + 10
+	uC._flash.writeLineAt(n++, 0b0010'1100'0000'0010);	// 6: MOV reg0 = reg2
+	uC._flash.writeLineAt(n++, 0b0010'1100'0001'0000);	// 7: MOV reg1 = reg0
+	uC._flash.writeLineAt(n++, 0b1100'0000'0000'0011);	// 8: RJMP PC = PC + 3 + 1 = 12
+	uC._flash.writeLineAt(n++, 0);						// 9: NOP
+	uC._flash.writeLineAt(n++, 0b1001'0101'1001'1000);  // 10: BREAK - current implementation stops the emulator
+	uC._flash.writeLineAt(n++, 0);					    // 11: NOP
+	uC._flash.writeLineAt(n++, 0b0000'1100'0000'0001);	// 12: ADD reg0 = reg0 + reg1
+	uC._flash.writeLineAt(n++, 0b1100'1111'1111'1100);	// 13: RJMP PC = PC - 4 + 1 = 10
+	uC._flash.writeLineAt(n++, 0);						// 14: NOP
+	uC._flash.writeLineAt(n++, 0);						// 15: NOP
+	uC._flash.writeLineAt(n++, 0b1001'0101'1001'1000);	// 16: BREAK - current implementation stops the emulator
 
 
 	std::cout << std::endl;

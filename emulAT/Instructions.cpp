@@ -91,9 +91,23 @@ void ATMega328p::ADIW(void) {
 	PC++;
 }
 
+void ATMega328p::BREAK(void) {
+	stop();
+}
+
 void ATMega328p::MOV(void) {
 	// Write the result
 	_registers[_instruction.d] = _registers[_instruction.r];
 	// Increment the Program Counter
 	PC++;
+}
+
+void ATMega328p::NOP(void) {
+	// Increment the Program Counter
+	PC++;
+}
+
+void ATMega328p::RJMP(void) {
+	// Increment the Program Counter
+	PC = PC + _instruction.k + 1;
 }

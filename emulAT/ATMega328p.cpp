@@ -37,3 +37,8 @@ void ATMega328p::unknownInstruction(void) {
 	std::cout << "!!!= UNKNOWN INSTRUCTION RECEIVED, ABORTING =!!!" << std::endl;
 	exit(1);
 }
+
+void ATMega328p::stop(void) {
+	std::cout << "=== BREAK INSTRUCTION, USED AS STOP CONDITION ===" << std::endl;
+	exit(1);
+}
