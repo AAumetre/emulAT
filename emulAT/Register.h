@@ -4,6 +4,7 @@
 #include <functional>
 
 using Register = uint8_t;
+using RegisterN = int8_t;
 using WideRegister = uint16_t;
 using ProgramCounter = uint16_t;
 using Instruction = std::bitset<16>;

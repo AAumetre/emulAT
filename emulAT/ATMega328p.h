@@ -78,6 +78,9 @@ private:
 	void ADC(void);
 	void ADIW(void); // d {24,26,28,30}, 0<=K<=63
 	void BREAK(void);
+	void BREQ(void);
+	void BRNE(void);
+	void CPI(void);
 	void MOV(void);
 	void NOP(void);
 	void RJMP(void);

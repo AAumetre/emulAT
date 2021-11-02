@@ -64,12 +64,20 @@ void ATMega328p::decode(void) {
 			_instruction.name = "MOV";
 			_instruction.description = "Copy Register";
 			_instruction.op = 0b00101100;
-			_instruction.d = 0b10000*(splitInstruction[1]&0b0001) + splitInstruction[2];
+			_instruction.d = 0b10000 * (splitInstruction[1] & 0b0001) + splitInstruction[2];
 			_instruction.r = 0b10000 * (splitInstruction[1] & 0b0010) + splitInstruction[3];
 			_instruction.callback = std::bind(&ATMega328p::MOV, this);
 			break;
 			break;
 		}
+		break;
+	case 0b0011:
+		_instruction.name = "CPI";
+		_instruction.description = "Compare with Immediate";
+		_instruction.op = 0b0011;
+		_instruction.d = 16 + splitInstruction[2];
+		_instruction.K = (splitInstruction[1] << 4) + splitInstruction[3];
+		_instruction.callback = std::bind(&ATMega328p::CPI, this);
 		break;
 	case 0b1001:
 		switch ((splitInstruction[1] & 0b1100) >> 2) { // Next two bits
@@ -82,7 +90,7 @@ void ATMega328p::decode(void) {
 				_instruction.d = 24 + 2 * (splitInstruction[2] & 0b0011);
 				_instruction.K = ((splitInstruction[2] & 0b1100) << 4) | splitInstruction[3];
 				_instruction.callback = std::bind(&ATMega328p::ADIW, this);
-				break;			
+				break;
 			case 0b01:
 				if (splitInstruction[2] == 0b1001 && splitInstruction[3] == 0b1000) {
 					_instruction.name = "BREAK";
@@ -92,8 +100,8 @@ void ATMega328p::decode(void) {
 					break;
 				}
 				break;
-		}
-		break;
+			}
+			break;
 		}
 		break;
 	case 0b1100:
@@ -103,7 +111,33 @@ void ATMega328p::decode(void) {
 		_instruction.k = (splitInstruction[1] << (3 * 4)) + (splitInstruction[2] << (2 * 4)) + (splitInstruction[3] << (1 * 4));
 		_instruction.k /= 16;
 		_instruction.callback = std::bind(&ATMega328p::RJMP, this);
-		break;		
+		break;
+	case 0b1111:
+		switch ((splitInstruction[1] & 0b1100) >> 2) { // Next two bits
+		case 0b00:
+			if ((splitInstruction[3] & 0b0111) == 0b0001) {
+				_instruction.name = "BREQ";
+				_instruction.description = "Branch if Equal";
+				_instruction.op = 0b111100001;
+				_instruction.k = ((splitInstruction[1] & 0b0011) << 14) + (splitInstruction[2] << 10) + ((splitInstruction[3] & 0b1000) << 6);
+				_instruction.k /= 512;
+				_instruction.callback = std::bind(&ATMega328p::BREQ, this);
+				break;
+			}
+		case 0b01:
+			if ((splitInstruction[3] & 0b0111) == 0b0001) {
+				_instruction.name = "BRNE";
+				_instruction.description = "Branch if Not Equal";
+				_instruction.op = 0b111101001;
+				_instruction.k = ((splitInstruction[1] & 0b0011) << 14) + (splitInstruction[2] << 10) + ((splitInstruction[3] & 0b1000) << 6);
+				_instruction.k /= 512;
+				_instruction.callback = std::bind(&ATMega328p::BRNE, this);
+				break;
+			}
+		case 0b10:
+		case 0b11:
+		break;
+		}
 	}
 
 	if (_instruction.name == "unknown") {
@@ -112,6 +146,6 @@ void ATMega328p::decode(void) {
 
 	if (_isVerbose) {
 		std::cout << "Instruction " << _instruction.name << ", d:" << (int)_instruction.d <<
-			", r:" << (int)_instruction.r << ", K: " << (int)_instruction.K << ". (" << _instruction.description << ")" << std::endl;
+			", r:" << (int)_instruction.r << ", K: " << (int)_instruction.K << ", k: " << (int)_instruction.k << ". (" << _instruction.description << ")" << std::endl;
 	}
 } // end decode()

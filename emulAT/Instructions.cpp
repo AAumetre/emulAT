@@ -92,7 +92,60 @@ void ATMega328p::ADIW(void) {
 }
 
 void ATMega328p::BREAK(void) {
+	std::cout << "=== BREAK INSTRUCTION, USED AS STOP CONDITION ===" << std::endl;
 	stop();
+}
+
+void ATMega328p::BREQ(void) {
+	// Check the Zero status flag
+	if (checkBitAt(SREG, StatusRegister::Zero)) {
+		PC = PC + _instruction.k + 1;
+	}
+	else {
+		PC++;
+	}
+}
+
+void ATMega328p::BRNE(void) {
+	// Check the Zero status flag
+	if (!checkBitAt(SREG, StatusRegister::Zero)) {
+		PC = PC + _instruction.k + 1;
+	}
+	else {
+		PC++;
+	}
+}
+
+void ATMega328p::CPI(void) {
+	// Store the result of the operation
+	Register Rd = _registers[_instruction.d];
+	Register K = _instruction.K;
+	RegisterN R = Rd - K;
+	// Set Half Carry flag (h)
+	bool h = (~checkBitAt(Rd, 3) && checkBitAt(K, 3)) ||
+		(checkBitAt(K, 3) && checkBitAt(R, 3)) ||
+		(checkBitAt(R, 3) && ~checkBitAt(Rd, 3));
+	setBitValue(SREG, StatusRegister::HalfCarry, h);
+	// Set Two Complement flag (v)
+	bool v = (checkBitAt(Rd, 7) && ~checkBitAt(K, 7) && ~checkBitAt(R, 7)) ||
+		(~checkBitAt(Rd, 7) && checkBitAt(K, 7) && checkBitAt(R, 7));
+	setBitValue(SREG, StatusRegister::TwoCpl, v);
+	// Set Negative flag (n)
+	bool n = checkBitAt(R, 7);
+	setBitValue(SREG, StatusRegister::Negative, n);
+	// Set Sign flag (s)
+	bool s = n ^ v;
+	setBitValue(SREG, StatusRegister::Sign, s);
+	// Set Zero flag (z)
+	bool z = (R == 0);
+	setBitValue(SREG, StatusRegister::Zero, z);
+	// Set Carry flag (c)	
+	bool c = (~checkBitAt(Rd, 7) && checkBitAt(K, 7)) ||
+		(checkBitAt(K, 7) && checkBitAt(R, 7)) ||
+		(checkBitAt(R, 7) && ~checkBitAt(Rd, 7));
+	setBitValue(SREG, StatusRegister::Carry, c);
+	// Increment the Program Counter
+	PC++;
 }
 
 void ATMega328p::MOV(void) {
