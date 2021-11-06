@@ -8,7 +8,7 @@ using RegisterN = int8_t;
 using WideRegister = uint16_t;
 using ProgramCounter = uint16_t;
 using Instruction = std::bitset<16>;
-using StackPointer = std::bitset<16>;
+using StackPointer = uint16_t;
 
 class StatusRegister {
 public:

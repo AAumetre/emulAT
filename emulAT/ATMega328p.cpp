@@ -10,7 +10,7 @@ ATMega328p::ATMega328p() :
 
 void ATMega328p::reset(void) {
 	// Reset the Stack Pointer
-	SP = 0;
+	SP = _ram_lines - 1;
 
 	// Reset the Program Counter
 	_ram.writeLineAt(_ram.END,		0);

@@ -18,9 +18,15 @@ void displayRegisters(ATMega328p& uC, size_t cycles, size_t n = 8) {
 		std::cout << checkBitAt(uC.SREG, i) << "  ";
 	}
 	std::cout << std::endl;
-	// Display the program counter value
+	// Display max 4 lines of the stack
+	for (int i = 0; i < 4 && uC.SP+i < 2*1024; ++i) {
+		std::cout << "SP-" << i << ": 0x" << std::setfill('0') << std::setw(4) <<
+			(int)uC._ram.readLineAt(uC.SP+i) << std::endl;
+	}
+	// Display the program counter and stack pointer's values
 	std::cout << "=== PC: 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)uC.PC << " === ";
-	std::cout << "=== Cycles: " << cycles << " === " << std::endl;
+	std::cout << "=== Cycles: " << cycles << " === ";
+	std::cout << "=== SP: 0x" << (int)uC.SP << " === " << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -60,7 +66,15 @@ int main(int argc, char** argv) {
 	uC._flash.writeLineAt(n++, 0b1111'0000'0001'0001);	// 20: BREQ at PC = PC + 2 + 1 = 23
 	uC._flash.writeLineAt(n++, 0b0000'1111'0000'0001);	// 21: ADD reg16 = reg16 + reg17 (1)
 	uC._flash.writeLineAt(n++, 0b1100'1111'1111'1100);	// 22: RJMP PC = PC - 4 + 1 = 19
-	uC._flash.writeLineAt(n++, 0b1001'0101'1001'1000);	// 23: BREAK - current implementation stops the emulator
+	uC._flash.writeLineAt(n++, 0b1001'0100'0000'1110);	// 23: CALL PC = see next line
+	uC._flash.writeLineAt(n++, 0b0000'0000'0001'1011);	// 24: PC = 27
+	uC._flash.writeLineAt(n++, 0b1001'0101'1001'1000);	// 25: BREAK - current implementation stops the emulator
+	uC._flash.writeLineAt(n++, 0b1001'0101'1001'1000);	// 26: BREAK - current implementation stops the emulator
+	uC._flash.writeLineAt(n++, 0);						// 27: NOP
+	uC._flash.writeLineAt(n++, 0);						// 28: NOP
+	uC._flash.writeLineAt(n++, 0b1001'0101'0000'1000);	// 29: RET
+	uC._flash.writeLineAt(n++, 0);						// 30: NOP
+	uC._flash.writeLineAt(n++, 0);						// 31: NOP
 
 
 	std::cout << std::endl;

@@ -28,7 +28,7 @@ public:
 public:
 	Flash<uint16_t> _flash;		// Blocks of 16 bits - contains the program
 	Eeprom<uint8_t> _eeprom;	// Blocks of 8 bits - contains additional data
-	Ram<uint8_t>	_ram;		// Blocks of 8 bits
+	Ram<uint16_t>	_ram;		// Blocks of 8 bits
 
 	Register _registers[_register_size];
 
@@ -80,9 +80,11 @@ private:
 	void BREAK(void);
 	void BREQ(void);
 	void BRNE(void);
+	void CALL(void);
 	void CPI(void);
 	void MOV(void);
 	void NOP(void);
+	void RET(void);
 	void RJMP(void);
 	void unknownInstruction(void);
 

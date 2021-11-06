@@ -99,8 +99,23 @@ void ATMega328p::decode(void) {
 					_instruction.callback = std::bind(&ATMega328p::BREAK, this);
 					break;
 				}
+				if (splitInstruction[2] == 0b0000 && splitInstruction[3] == 0b1000) {
+					_instruction.name = "RET";
+					_instruction.description = "Return from Subroutine";
+					_instruction.op = 0b1001'0101'0000'1000;
+					_instruction.callback = std::bind(&ATMega328p::RET, this);
+					break;
+				}
 				break;
 			}
+			break;
+		}
+		if ((splitInstruction[1] & 0b1110) == 0b0100 && (splitInstruction[3] & 0b1110) == 0b1110) {
+			_instruction.name = "CALL";
+			_instruction.description = "Long Call to a Subroutine";
+			_instruction.op = 0b1001'0100'0000'1110;
+			_instruction.callback = std::bind(&ATMega328p::CALL, this);
+			_instruction.k = _flash.readLineAt(PC + 1);
 			break;
 		}
 		break;

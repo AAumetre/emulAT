@@ -116,6 +116,17 @@ void ATMega328p::BRNE(void) {
 	}
 }
 
+void ATMega328p::CALL(void) {
+	// Update the stack
+	int16_t new_pc_msb = ( (PC + 2) & 0xFF00 ) >> 8;
+	int16_t new_pc_lsb =   (PC + 2) & 0x00FF;
+	_ram.writeLineAt(SP-1, new_pc_lsb);
+	_ram.writeLineAt(SP-2, new_pc_msb);
+	// Update PC and SP
+	PC = _instruction.k;
+	SP = SP - 2;
+}
+
 void ATMega328p::CPI(void) {
 	// Store the result of the operation
 	Register Rd = _registers[_instruction.d];
@@ -158,6 +169,12 @@ void ATMega328p::MOV(void) {
 void ATMega328p::NOP(void) {
 	// Increment the Program Counter
 	PC++;
+}
+
+void ATMega328p::RET(void) {
+	// Only read the second line, the MSB is supposed to be 0 anyway
+	PC = _ram.readLineAt(SP+1);
+	SP += 2;
 }
 
 void ATMega328p::RJMP(void) {
