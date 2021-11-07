@@ -72,11 +72,15 @@ int main(int argc, char** argv) {
 	uC._flash.writeLineAt(n++, 0b1001'0101'1001'1000);	// 1A: BREAK - current implementation stops the emulator
 	uC._flash.writeLineAt(n++, 0b1001'0101'1001'1000);	// 1B: BREAK - current implementation stops the emulator
 	// Routine, starts at PC=27    int add_ten(int n) -> return n+10
-	uC._flash.writeLineAt(n++, 0b1001'0000'1000'1111);	// 1C: POP to reg8
-	uC._flash.writeLineAt(n++, 0b1110'0000'0100'1010);	// 1D: LDI reg20 = 10
-	uC._flash.writeLineAt(n++, 0b0000'1101'0100'1000);	// 1E: ADD reg20 = reg8 + reg9
-	// uC._flash.writeLineAt(n++, 0b1001'0011'0100'1111);	// 1F: PUSH reg20
-	uC._flash.writeLineAt(n++, 0b1001'0101'0000'1000);	// 1F: RET
+	uC._flash.writeLineAt(n++, 0b1001'0000'0101'1111);	// 1C: POP to reg5 - to increment SP
+	uC._flash.writeLineAt(n++, 0b1001'0000'0101'1111);	// 1D: POP to reg5 - return address MSB
+	uC._flash.writeLineAt(n++, 0b1001'0000'1110'1111);	// 1E: POP to reg6 - return address LSB
+	uC._flash.writeLineAt(n++, 0b1001'0000'1000'1111);	// 1F: POP to reg8 - argument passed via stack
+	uC._flash.writeLineAt(n++, 0b1110'0000'0100'1010);	// 20: LDI reg20 = 10
+	uC._flash.writeLineAt(n++, 0b0000'1101'0100'1000);	// 21: ADD reg20 = reg20 + reg8
+	uC._flash.writeLineAt(n++, 0b1001'0010'0110'1111);	// 22: PUSH reg6
+	uC._flash.writeLineAt(n++, 0b1001'0010'0101'1111);	// 23: PUSH reg5
+	uC._flash.writeLineAt(n++, 0b1001'0101'0000'1000);	// 24: RET
 
 
 	std::cout << std::endl;

@@ -181,6 +181,9 @@ void ATMega328p::NOP(void) {
 void ATMega328p::POP(void) {
 	// Increment the stack pointer
 	SP++;
+	if (SP > _ram_lines - 1) {
+		SP = _ram_lines - 1;
+	}
 	// Write Rd with value from the stack
 	_registers[_instruction.d] = _ram.readLineAt(SP);
 	// Increment the Program Counter
