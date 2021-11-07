@@ -82,8 +82,11 @@ private:
 	void BRNE(void);
 	void CALL(void);
 	void CPI(void);
+	void LDI(void);
 	void MOV(void);
 	void NOP(void);
+	void POP(void);
+	void PUSH(void);
 	void RET(void);
 	void RJMP(void);
 	void unknownInstruction(void);

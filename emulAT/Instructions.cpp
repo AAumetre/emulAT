@@ -120,8 +120,8 @@ void ATMega328p::CALL(void) {
 	// Update the stack
 	int16_t new_pc_msb = ( (PC + 2) & 0xFF00 ) >> 8;
 	int16_t new_pc_lsb =   (PC + 2) & 0x00FF;
-	_ram.writeLineAt(SP-1, new_pc_lsb);
-	_ram.writeLineAt(SP-2, new_pc_msb);
+	_ram.writeLineAt(SP, new_pc_lsb);
+	_ram.writeLineAt(SP-1, new_pc_msb);
 	// Update PC and SP
 	PC = _instruction.k;
 	SP = SP - 2;
@@ -159,6 +159,13 @@ void ATMega328p::CPI(void) {
 	PC++;
 }
 
+void ATMega328p::LDI(void) {
+	// Rd = K
+	_registers[16+_instruction.d] = _instruction.K;
+	// Increment the Program Counter
+	PC++;
+}
+
 void ATMega328p::MOV(void) {
 	// Write the result
 	_registers[_instruction.d] = _registers[_instruction.r];
@@ -171,10 +178,29 @@ void ATMega328p::NOP(void) {
 	PC++;
 }
 
+void ATMega328p::POP(void) {
+	// Increment the stack pointer
+	SP++;
+	// Write Rd with value from the stack
+	_registers[_instruction.d] = _ram.readLineAt(SP);
+	// Increment the Program Counter
+	PC++;
+}
+
+void ATMega328p::PUSH(void) {
+	// Set the stack to Rr value
+	_ram.writeLineAt(SP, _registers[_instruction.r]);
+	// Decrement the stack pointer
+	SP--;
+	// Increment the Program Counter
+	PC++;
+}
+
 void ATMega328p::RET(void) {
-	// Only read the second line, the MSB is supposed to be 0 anyway
-	PC = _ram.readLineAt(SP+1);
+	// Pre-increment the SP
 	SP += 2;
+	// Read the two lines before the new SP
+	PC = (_ram.readLineAt(SP-2) << 8) + _ram.readLineAt(SP-1);
 }
 
 void ATMega328p::RJMP(void) {

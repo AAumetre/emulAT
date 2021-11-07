@@ -32,15 +32,14 @@ void ATMega328p::decode(void) {
 			_instruction.d = (((splitInstruction[1] & 0b1) << 4) | splitInstruction[2]);
 			_instruction.r = (((splitInstruction[1] & 0b10) << 3) | splitInstruction[3]);
 			_instruction.callback = std::bind(&ATMega328p::ADD, this);
-			break;
-			break;
+			goto instruction_decoded;
 		case 0b00:
 			if (splitInstruction[0] == 0 && splitInstruction[1] == 0 && splitInstruction[2] == 0 && splitInstruction[3] == 0) {
 				_instruction.name = "NOP";
 				_instruction.description = "No Operation";
 				_instruction.op = 0b0000'0000'0000'0000;
 				_instruction.callback = std::bind(&ATMega328p::NOP, this);
-				break;
+				goto instruction_decoded;
 			}
 			break;
 		}
@@ -54,8 +53,7 @@ void ATMega328p::decode(void) {
 			_instruction.d = (((splitInstruction[1] & 0b1) << 4) | splitInstruction[2]);
 			_instruction.r = (((splitInstruction[1] & 0b10) << 3) | splitInstruction[3]);
 			_instruction.callback = std::bind(&ATMega328p::ADC, this);
-			break;
-			break;
+			goto instruction_decoded;
 		}
 		break;
 	case 0b0010:
@@ -67,8 +65,7 @@ void ATMega328p::decode(void) {
 			_instruction.d = 0b10000 * (splitInstruction[1] & 0b0001) + splitInstruction[2];
 			_instruction.r = 0b10000 * (splitInstruction[1] & 0b0010) + splitInstruction[3];
 			_instruction.callback = std::bind(&ATMega328p::MOV, this);
-			break;
-			break;
+			goto instruction_decoded;
 		}
 		break;
 	case 0b0011:
@@ -78,7 +75,7 @@ void ATMega328p::decode(void) {
 		_instruction.d = 16 + splitInstruction[2];
 		_instruction.K = (splitInstruction[1] << 4) + splitInstruction[3];
 		_instruction.callback = std::bind(&ATMega328p::CPI, this);
-		break;
+		goto instruction_decoded;
 	case 0b1001:
 		switch ((splitInstruction[1] & 0b1100) >> 2) { // Next two bits
 		case 0b01:
@@ -90,23 +87,41 @@ void ATMega328p::decode(void) {
 				_instruction.d = 24 + 2 * (splitInstruction[2] & 0b0011);
 				_instruction.K = ((splitInstruction[2] & 0b1100) << 4) | splitInstruction[3];
 				_instruction.callback = std::bind(&ATMega328p::ADIW, this);
-				break;
+				goto instruction_decoded;
 			case 0b01:
 				if (splitInstruction[2] == 0b1001 && splitInstruction[3] == 0b1000) {
 					_instruction.name = "BREAK";
 					_instruction.description = "Break";
 					_instruction.op = 0b1001'0101'1001'1000;
 					_instruction.callback = std::bind(&ATMega328p::BREAK, this);
-					break;
+					goto instruction_decoded;
 				}
 				if (splitInstruction[2] == 0b0000 && splitInstruction[3] == 0b1000) {
 					_instruction.name = "RET";
 					_instruction.description = "Return from Subroutine";
 					_instruction.op = 0b1001'0101'0000'1000;
 					_instruction.callback = std::bind(&ATMega328p::RET, this);
-					break;
+					goto instruction_decoded;
 				}
 				break;
+			}
+			break;
+		case 0b00:
+			if ((splitInstruction[1] & 0b1110) == 0b0000 && splitInstruction[3] == 0b1111) {
+				_instruction.name = "POP";
+				_instruction.description = "Pop Register from Stack";
+				_instruction.op = 0b1001'0000'0000'1111;
+				_instruction.d = ((splitInstruction[1] & 0b1) << 4) + splitInstruction[2];
+				_instruction.callback = std::bind(&ATMega328p::POP, this);
+				goto instruction_decoded;
+			}
+			if ((splitInstruction[1] & 0b1110) == 0b0010 && splitInstruction[3] == 0b1111) {
+				_instruction.name = "PUSH";
+				_instruction.description = "Push Register on Stack";
+				_instruction.op = 0b1001'0010'0000'1111;
+				_instruction.r = ((splitInstruction[1]&0b1) << 4) + splitInstruction[2];
+				_instruction.callback = std::bind(&ATMega328p::PUSH, this);
+				goto instruction_decoded;
 			}
 			break;
 		}
@@ -114,9 +129,9 @@ void ATMega328p::decode(void) {
 			_instruction.name = "CALL";
 			_instruction.description = "Long Call to a Subroutine";
 			_instruction.op = 0b1001'0100'0000'1110;
-			_instruction.callback = std::bind(&ATMega328p::CALL, this);
 			_instruction.k = _flash.readLineAt(PC + 1);
-			break;
+			_instruction.callback = std::bind(&ATMega328p::CALL, this);
+			goto instruction_decoded;
 		}
 		break;
 	case 0b1100:
@@ -126,7 +141,15 @@ void ATMega328p::decode(void) {
 		_instruction.k = (splitInstruction[1] << (3 * 4)) + (splitInstruction[2] << (2 * 4)) + (splitInstruction[3] << (1 * 4));
 		_instruction.k /= 16;
 		_instruction.callback = std::bind(&ATMega328p::RJMP, this);
-		break;
+		goto instruction_decoded;
+	case 0b1110:
+		_instruction.name = "LDI";
+		_instruction.description = "Load Immediate";
+		_instruction.op = 0b1110;
+		_instruction.K = (splitInstruction[1] << 4) + splitInstruction[3];
+		_instruction.d = splitInstruction[2];
+		_instruction.callback = std::bind(&ATMega328p::LDI, this);
+		goto instruction_decoded;
 	case 0b1111:
 		switch ((splitInstruction[1] & 0b1100) >> 2) { // Next two bits
 		case 0b00:
@@ -137,7 +160,7 @@ void ATMega328p::decode(void) {
 				_instruction.k = ((splitInstruction[1] & 0b0011) << 14) + (splitInstruction[2] << 10) + ((splitInstruction[3] & 0b1000) << 6);
 				_instruction.k /= 512;
 				_instruction.callback = std::bind(&ATMega328p::BREQ, this);
-				break;
+				goto instruction_decoded;
 			}
 		case 0b01:
 			if ((splitInstruction[3] & 0b0111) == 0b0001) {
@@ -147,7 +170,7 @@ void ATMega328p::decode(void) {
 				_instruction.k = ((splitInstruction[1] & 0b0011) << 14) + (splitInstruction[2] << 10) + ((splitInstruction[3] & 0b1000) << 6);
 				_instruction.k /= 512;
 				_instruction.callback = std::bind(&ATMega328p::BRNE, this);
-				break;
+				goto instruction_decoded;
 			}
 		case 0b10:
 		case 0b11:
@@ -159,8 +182,9 @@ void ATMega328p::decode(void) {
 		handleUnknownInstruction();
 	}
 
+	instruction_decoded: // Label to jump to once an instruction has been decoded
 	if (_isVerbose) {
 		std::cout << "Instruction " << _instruction.name << ", d:" << (int)_instruction.d <<
-			", r:" << (int)_instruction.r << ", K: " << (int)_instruction.K << ", k: " << (int)_instruction.k << ". (" << _instruction.description << ")" << std::endl;
+			", r:" << (int)_instruction.r << ", K: " << (int)_instruction.K << ", k: " << (int)_instruction.k << ".                            (" << _instruction.description << ")" << std::endl;
 	}
 } // end decode()
